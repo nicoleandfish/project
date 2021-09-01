@@ -272,19 +272,86 @@ import re
 import lxml
 from html.parser import HTMLParser
 
+
 def get_ssq_data():
-    bet_header = {User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Mobile Safari/537.36
-    }
+    bet_header = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'}
     url = "https://kaijiang.500.com/shtml/ssq/18121.shtml"
+
+    # phrase 1
+    # try:
+    #     lottery_req = requests.get(url, headers=bet_header, timeout=10)
+    # except:
+    #     print("Read time out")
+    #     return -1
+
+    # phrase 2
     try:
-        lottery_req = requests.get(url, headers = bet_header,timeout=10)
-    except:
-        print("Read time out")
-        return -1
-        
-    print(lottery_req.status_code)
-    print(lottery_req.text)
-   
+        try:
+            lottery_req = requests.get(url,headers = bet_header, timeout=10)
+            lottery_req.encoding = "GB2312"
+            # print(lottery_req.text)
+        except:
+            print("Read time out")
+            return -1
+
+        soup = BeautifulSoup(lottery_req.text,'lxml')
+        # print(soup)
+        tablesoup = soup.find_all("table",attrs={"class":"kj_tablelist02"})
+        # print(tablesoup)
+        open_rows = tablesoup[0].findAll("div",attrs={"class":"ball_box01"})
+        # print(open_rows)
+
+        #获取标签中所有字符串并输出
+        open_dates = tablesoup[0].findAll("td",attrs={"class":"td_title01"})
+        open_dates_spans = open_dates[0].findAll("span",attrs={"class":"span_right"})
+        # print(open_dates_spans[0].get_text())
+        open_date = open_dates_spans[0].get_text()
+        ssq_open_year = open_date[5:9]
+        year_char_index = open_date.index('年')
+        month_char_index = open_date.index('月')
+        day_char_first_index = open_date.index('日')
+        day_char_index = open_date.find('日',day_char_first_index+1)
+        ssq_open_month = open_date[year_char_index+1 : month_char_index].zfill(2)
+        ssq_open_day = open_date[month_char_index+1: day_char_index].zfill(2)
+        # print(ssq_open_year)
+        # print(ssq_open_month)
+        # print(ssq_open_day)
+
+        # 获取奖金金额和注数
+        rows = tablesoup[1].findAll('tr')
+        tds_1 = rows[2].findAll('td')
+        tds_2 = rows[3].findAll('td')
+        first_prize_name = tds_1[0].get_text().strip()
+        first_prize_num = tds_1[1].get_text().strip()
+        first_prize = tds_1[2].get_text().strip()
+        second_prize_name = tds_2[0].get_text().strip()
+        second_prize_num = tds_2[1].get_text().strip()
+        second_prize = tds_2[2].get_text().strip()
+        # print(first_prize_name)
+        # print(first_prize_num)
+        # print(first_prize)
+        # print(second_prize_name)
+        # print(second_prize_num)
+        # print(second_prize)
+
+        open_tds = open_rows[0].findAll("li")
+        red_ball1 = open_tds[0].get_text().strip()
+        red_ball2 = open_tds[1].get_text().strip()
+        red_ball3 = open_tds[2].get_text().strip()
+        red_ball4 = open_tds[3].get_text().strip()
+        red_ball5 = open_tds[4].get_text().strip()
+        red_ball6 = open_tds[5].get_text().strip()
+        blue_ball = open_tds[6].get_text().strip()
+        print("open ball:%s,%s,%s,%s,%s,%s,%s"%(red_ball1,red_ball2,red_ball3,red_ball4,red_ball5,red_ball6,blue_ball))
+
+        # coding problem
+        # print(lottery_req.status_code)
+        # print(lottery_req.text)
+        # print(lottery_req.encoding)
+        # print(lottery_req.apparent_encoding)
+    except Exception as e:
+        raise e
+
 if __name__ == '__main__':
     get_ssq_data()
 ```
@@ -309,3 +376,9 @@ Chrome开发者工具中，使用最多的3+1个页面，元素（Element）、�
 - 控制台：一般用于执行一次性代码，查看JavaScript对象，查看调试日志信息或异常信息。
 - 源代码：用于查看页面的HTML文件源代码、JavaScript源代码、CSS源代码。可调试JavaScript，并添加断点。
 - 网络：查看header等与网络连接相关的信息。其中XHR为XMLHttpRequest。
+
+## 4 概率论
+
+CDF-Cumulative Distribution Function，累积分布函数
+
+PDF-Probability Density Function，概率密度函数
